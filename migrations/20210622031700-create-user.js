@@ -1,7 +1,6 @@
-"use strict";
 module.exports = {
   up: async (queryInterface, Sequelize) => {
-    await queryInterface.createTable("users", {
+    await queryInterface.createTable('users', {
       uuid: {
         type: Sequelize.UUID,
         defaultValue: Sequelize.UUIDV4,
@@ -18,7 +17,7 @@ module.exports = {
         type: Sequelize.STRING,
         required: true,
         validate: {
-          isEmail: { message: "Please enter a valid email address" },
+          isEmail: { message: 'Please enter a valid email address' },
         },
         unique: true,
       },
@@ -39,7 +38,7 @@ module.exports = {
       },
       status: {
         type: Sequelize.STRING,
-        values: ["user", "suspended", "cancel", "deleded", "admin"],
+        values: ['user', 'suspended', 'cancel', 'deleded', 'admin'],
       },
       createdAt: {
         allowNull: false,
@@ -51,7 +50,7 @@ module.exports = {
       },
     });
   },
-  down: async (queryInterface, Sequelize) => {
-    await queryInterface.dropTable("users");
+  down: async (queryInterface) => {
+    await queryInterface.dropTable('users');
   },
 };

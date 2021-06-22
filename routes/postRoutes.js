@@ -1,7 +1,7 @@
-const express = require("express");
-const { body } = require("express-validator");
+const express = require('express');
+const { body } = require('express-validator');
 
-const isAuth = require("../middleware/is-auth");
+const isAuth = require('../middleware/is-auth');
 
 // controllers
 const {
@@ -10,34 +10,34 @@ const {
   getPosts,
   updatePost,
   getSinglePost,
-} = require("../controllers/postController");
+} = require('../controllers/postController');
 
 const router = express.Router();
 
 router.post(
-  "/create",
+  '/create',
   isAuth,
   [
-    body("title").trim().isLength({ min: 5 }),
-    body("content").trim().isLength({ min: 5 }),
+    body('title').trim().isLength({ min: 5 }),
+    body('content').trim().isLength({ min: 5 }),
   ],
-  createPost
+  createPost,
 );
 
-router.get("/all", isAuth, getPosts);
+router.get('/all', isAuth, getPosts);
 
-router.get("/:postId", isAuth, getSinglePost);
+router.get('/:postId', isAuth, getSinglePost);
 
-router.delete("/:postId", isAuth, deletePost);
+router.delete('/:postId', isAuth, deletePost);
 
 router.put(
-  "/:postId",
+  '/:postId',
   isAuth,
   [
-    body("title").trim().isLength({ min: 5 }),
-    body("content").trim().isLength({ min: 5 }),
+    body('title').trim().isLength({ min: 5 }),
+    body('content').trim().isLength({ min: 5 }),
   ],
-  updatePost
+  updatePost,
 );
 
 module.exports = router;

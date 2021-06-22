@@ -1,5 +1,5 @@
-"use strict";
-const { Model } = require("sequelize");
+const { Model } = require('sequelize');
+
 module.exports = (sequelize, DataTypes) => {
   class User extends Model {
     /**
@@ -9,7 +9,7 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate({ Post }) {
       // define association here
-      this.hasMany(Post, { foreignKey: "userId", as: "posts" });
+      this.hasMany(Post, { foreignKey: 'userId', as: 'posts' });
     }
 
     toJSON() {
@@ -32,7 +32,7 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.STRING,
         required: true,
         validate: {
-          isEmail: { message: "Please enter a valid email address" },
+          isEmail: { message: 'Please enter a valid email address' },
         },
         unique: true,
         allowNull: false,
@@ -56,17 +56,17 @@ module.exports = (sequelize, DataTypes) => {
       },
       status: {
         type: DataTypes.STRING,
-        values: ["user", "suspended", "cancel", "deleded", "admin"],
+        values: ['user', 'suspended', 'cancel', 'deleded', 'admin'],
         allowNull: false,
-        defaultValue: "user",
+        defaultValue: 'user',
       },
     },
     {
       sequelize,
       timestamps: true,
-      modelName: "User",
-      tableName: "users",
-    }
+      modelName: 'User',
+      tableName: 'users',
+    },
   );
   return User;
 };

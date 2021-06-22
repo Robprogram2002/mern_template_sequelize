@@ -1,43 +1,45 @@
-const fs = require("fs");
-const path = require("path");
+const fs = require('fs');
+const path = require('path');
 
-const { validationResult } = require("express-validator");
-const { Post, User } = require("../models/");
-const io = require("../socket");
+const { validationResult } = require('express-validator');
+const { Post, User } = require('../models');
+const io = require('../socket');
+
+const clearImage = (filePath) => {
+  fs.unlink(path.join(__dirname, '..', filePath), (err) => console.log(err));
+};
 
 exports.createPost = async (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    const error = new Error("Validation failed, entered data is incorrect.");
+    const error = new Error('Validation failed, entered data is incorrect.');
     error.statusCode = 422;
     throw error;
   }
   if (!req.file) {
     // multer middleware will automatically add a property file to the req object
     // when a file is detected.
-    const error = new Error("No image provided.");
+    const error = new Error('No image provided.');
     error.statusCode = 422;
     throw error;
   }
-
-  console.log(req.file);
 
   const { title, content } = req.body;
   const imageUrl = req.file.path;
 
   try {
     const newPost = await Post.create({
-      title: title,
-      content: content,
-      imageUrl: imageUrl,
+      title,
+      content,
+      imageUrl,
       userId: req.userId,
     });
 
     const creator = await User.findByPk(req.userId, {
-      attributes: ["uuid", "email", "name", "status"],
+      attributes: ['uuid', 'email', 'name', 'status'],
     });
-    io.getIO().emit("posts", {
-      action: "create",
+    io.getIO().emit('posts', {
+      action: 'create',
       post: {
         ...newPost.toJSON(),
         creator: { _id: creator.uuid, name: creator.name },
@@ -45,7 +47,7 @@ exports.createPost = async (req, res, next) => {
     });
 
     res.status(201).json({
-      message: "Post created successfully!",
+      message: 'Post created successfully!',
       post: { ...newPost.toJSON(), creator: creator.toJSON() },
     });
   } catch (error) {
@@ -62,14 +64,14 @@ exports.getPosts = async (req, res, next) => {
   try {
     const { count, rows: posts } = await Post.findAndCountAll({
       limit: perPage,
-      order: [["createdAt", "DESC"]],
+      order: [['createdAt', 'DESC']],
       include: [User],
       offset: (currentPage - 1) * perPage,
     });
 
     res.status(200).json({
-      message: "Fetched posts successfully.",
-      posts: posts,
+      message: 'Fetched posts successfully.',
+      posts,
       totalItems: count,
     });
   } catch (error) {
@@ -89,11 +91,11 @@ exports.getSinglePost = async (req, res, next) => {
       include: [User],
     });
     if (!post) {
-      const error = new Error("Could not find post.");
+      const error = new Error('Could not find post.');
       error.statusCode = 404;
       throw error;
     }
-    res.status(200).json({ message: "Post fetched.", post: post });
+    res.status(200).json({ message: 'Post fetched.', post });
   } catch (error) {
     if (!error.statusCode) {
       error.statusCode = 500;
@@ -109,7 +111,7 @@ exports.updatePost = async (req, res, next) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      const error = new Error("Validation failed, entered data is incorrect.");
+      const error = new Error('Validation failed, entered data is incorrect.');
       error.statusCode = 422;
       throw error;
     }
@@ -118,7 +120,7 @@ exports.updatePost = async (req, res, next) => {
       imageUrl = req.file.path;
     }
     if (!imageUrl) {
-      const error = new Error("No file picked.");
+      const error = new Error('No file picked.');
       error.statusCode = 422;
       throw error;
     }
@@ -129,12 +131,12 @@ exports.updatePost = async (req, res, next) => {
     });
 
     if (!post) {
-      const error = new Error("Could not find post.");
+      const error = new Error('Could not find post.');
       error.statusCode = 404;
       throw error;
     }
     if (post.User.id !== req.userId) {
-      const error = new Error("Not authorized!");
+      const error = new Error('Not authorized!');
       error.statusCode = 403;
       throw error;
     }
@@ -146,9 +148,9 @@ exports.updatePost = async (req, res, next) => {
     post.content = content;
     const result = await post.save();
 
-    io.getIO().emit("posts", { action: "update", post: result });
+    io.getIO().emit('posts', { action: 'update', post: result });
 
-    res.status(200).json({ message: "Post updated!", post: result });
+    res.status(200).json({ message: 'Post updated!', post: result });
   } catch (error) {
     if (!error.statusCode) {
       error.statusCode = 500;
@@ -158,7 +160,7 @@ exports.updatePost = async (req, res, next) => {
 };
 
 exports.deletePost = async (req, res, next) => {
-  const postId = req.params.postId;
+  const { postId } = req.params;
   try {
     const post = await Post.findOne({
       where: { uuid: postId },
@@ -166,12 +168,12 @@ exports.deletePost = async (req, res, next) => {
     });
 
     if (!post) {
-      const error = new Error("Could not find post.");
+      const error = new Error('Could not find post.');
       error.statusCode = 404;
       throw error;
     }
     if (post.User.id !== req.userId) {
-      const error = new Error("Not authorized!");
+      const error = new Error('Not authorized!');
       error.statusCode = 403;
       throw error;
     }
@@ -179,17 +181,12 @@ exports.deletePost = async (req, res, next) => {
     clearImage(post.imageUrl);
     await post.destroy();
 
-    io.getIO().emit("posts", { action: "delete", post: postId });
-    res.status(200).json({ message: "Deleted post." });
+    io.getIO().emit('posts', { action: 'delete', post: postId });
+    res.status(200).json({ message: 'Deleted post.' });
   } catch (err) {
     if (!err.statusCode) {
       err.statusCode = 500;
     }
     next(err);
   }
-};
-
-const clearImage = (filePath) => {
-  filePath = path.join(__dirname, "..", filePath);
-  fs.unlink(filePath, (err) => console.log(err));
 };

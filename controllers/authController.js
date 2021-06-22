@@ -1,7 +1,7 @@
-const bcrypt = require("bcryptjs");
-const { User } = require("../models/");
-const jwt = require("jsonwebtoken");
-const { validationResult } = require("express-validator");
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+const { validationResult } = require('express-validator');
+const { User } = require('../models');
 
 module.exports = {
   signUpHanlder: async (req, res, next) => {
@@ -10,7 +10,7 @@ module.exports = {
     try {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
-        const error = new Error("Validation failed.");
+        const error = new Error('Validation failed.');
         error.statusCode = 422;
         error.data = errors.array();
         throw error;
@@ -18,13 +18,13 @@ module.exports = {
       const hashedPw = await bcrypt.hash(password, 12);
 
       const newUser = await User.create({
-        email: email,
+        email,
         password: hashedPw,
         name: username,
       });
 
-      return res.json({
-        message: "User created succesfully",
+      res.json({
+        message: 'User created succesfully',
         user: newUser.toJSON(),
       });
     } catch (error) {
@@ -38,11 +38,11 @@ module.exports = {
   signInHandler: async (req, res, next) => {
     const { email, password } = req.body;
 
-    let loadUser;
+    let loadedUser;
     try {
-      const user = await User.findOne({ where: { email: email } });
+      const user = await User.findOne({ where: { email } });
       if (!user) {
-        const error = new Error("A user with this email could not be found.");
+        const error = new Error('A user with this email could not be found.');
         error.statusCode = 401;
         throw error;
       }
@@ -50,7 +50,7 @@ module.exports = {
       loadedUser = user;
       const isEqual = await bcrypt.compare(password, user.password);
       if (!isEqual) {
-        const error = new Error("Wrong password!");
+        const error = new Error('Wrong password!');
         error.statusCode = 401;
         throw error;
       }
@@ -61,9 +61,9 @@ module.exports = {
           userId: loadedUser.id,
         },
         process.env.TOKEN_SECRET,
-        { expiresIn: process.env.TOKEN_EXPIRATION }
+        { expiresIn: process.env.TOKEN_EXPIRATION },
       );
-      return res.status(200).json({ token: token, userId: loadedUser.uuid });
+      res.status(200).json({ token, userId: loadedUser.uuid });
     } catch (error) {
       if (!error.statusCode) {
         error.statusCode = 500;
