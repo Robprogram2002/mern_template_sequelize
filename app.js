@@ -1,3 +1,5 @@
+const path = require("path");
+
 // packages
 const express = require("express");
 const app = express();
@@ -23,7 +25,7 @@ app.use(cors());
 process.env.NODE_ENV == "development" && app.use(morgan("combined"));
 
 // file upload configuration
-const filestorage = multer.diskStorage({
+const fileStorage = multer.diskStorage({
   destination: function (req, file, cb) {
     // where the files are storaged
     cb(null, "images");
@@ -50,7 +52,9 @@ const fileFilter = (req, file, cb) => {
   }
 };
 
-const upload = multer({ storage: storage });
+// we can use the upload object to handle file uploads only in specific routes and
+// not as a general middleware
+// const upload = multer({ storage: fileStorage, fileFilter: fileFilter });
 
 // file handle middleware
 app.use(
