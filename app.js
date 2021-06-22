@@ -54,12 +54,10 @@ const fileFilter = (req, file, cb) => {
 
 // we can use the upload object to handle file uploads only in specific routes and
 // not as a general middleware
-// const upload = multer({ storage: fileStorage, fileFilter: fileFilter });
+const upload = multer({ storage: fileStorage, fileFilter: fileFilter });
 
 // file handle middleware
-app.use(
-  multer({ storage: fileStorage, fileFilter: fileFilter }).single("image")
-);
+app.use(upload.single("image"));
 app.use("/images", express.static(path.join(__dirname, "images")));
 
 // main routes
@@ -88,3 +86,5 @@ const main = async () => {
     });
   });
 };
+
+main();
