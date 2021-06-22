@@ -1,5 +1,9 @@
+const fs = require("fs");
+const path = require("path");
+
 const { validationResult } = require("express-validator");
 const { Post, User } = require("../models/");
+const io = require("../socket");
 
 exports.createPost = async (req, res, next) => {
   const errors = validationResult(req);
@@ -9,6 +13,8 @@ exports.createPost = async (req, res, next) => {
     throw error;
   }
   if (!req.file) {
+    // multer middleware will automatically add a property file to the req object
+    // when a file is detected.
     const error = new Error("No image provided.");
     error.statusCode = 422;
     throw error;
@@ -26,6 +32,10 @@ exports.createPost = async (req, res, next) => {
     });
 
     const creator = await User.findByPk(req.userId);
+    io.getIO().emit("posts", {
+      action: "create",
+      post: { ...post.toJSON(), creator: { _id: uuid, name: user.name } },
+    });
 
     res.status(201).json({
       message: "Post created successfully!",
@@ -115,13 +125,15 @@ exports.updatePost = async (req, res, next) => {
       error.statusCode = 403;
       throw error;
     }
-    // if (imageUrl !== post.imageUrl) {
-    //   clearImage(post.imageUrl);
-    // }
+    if (imageUrl !== post.imageUrl) {
+      clearImage(post.imageUrl);
+    }
     post.title = title;
     post.imageUrl = imageUrl;
     post.content = content;
     const result = await post.save();
+
+    io.getIO().emit("posts", { action: "update", post: result });
 
     res.status(200).json({ message: "Post updated!", post: result });
   } catch (error) {
@@ -148,8 +160,8 @@ exports.deletePost = async (req, res, next) => {
       throw error;
     }
     // Check logged in user
-    // clearImage(post.imageUrl);
-
+    clearImage(post.imageUrl);
+    io.getIO().emit("posts", { action: "delete", post: postId });
     res.status(200).json({ message: "Deleted post." });
   } catch (err) {
     if (!err.statusCode) {
