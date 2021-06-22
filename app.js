@@ -18,11 +18,21 @@ app.use(express.json());
 app.use(cors());
 
 // test route
-app.get("/testing", (req, res) => {
-  res.json("All ok");
-});
+// app.get("/testing", (req, res) => {
+//   res.json("All ok");
+// });
 
+// main routes
 app.use(userRoutes);
+
+// error middleware
+app.use((error, req, res, next) => {
+  console.log(error);
+  const status = error.statusCode || 500;
+  const message = error.message;
+  const data = error.data;
+  res.status(status).json({ message: message, data: data });
+});
 
 app.listen(process.env.PORT || 3000, async () => {
   console.log("server running !! : http://localhost:3000");

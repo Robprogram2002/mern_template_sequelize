@@ -1,11 +1,20 @@
 const bcrypt = require("bcryptjs");
 const { User } = require("../models/");
 const jwt = require("jsonwebtoken");
+const { validationResult } = require("express-validator");
 
 module.exports = {
   signUpHanlder: async (req, res, next) => {
     const { email, username, password } = req.body;
+
     try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        const error = new Error("Validation failed.");
+        error.statusCode = 422;
+        error.data = errors.array();
+        throw error;
+      }
       const hashedPw = await bcrypt.hash(password, 12);
 
       const newUser = await User.create({
@@ -19,7 +28,10 @@ module.exports = {
         user: newUser.toJSON(),
       });
     } catch (error) {
-      console.log.apply(error);
+      if (!error.statusCode) {
+        error.statusCode = 500;
+      }
+      next(error);
     }
   },
 
@@ -53,7 +65,10 @@ module.exports = {
       );
       return res.status(200).json({ token: token, userId: loadedUser.uuid });
     } catch (error) {
-      console.log(error);
+      if (!error.statusCode) {
+        error.statusCode = 500;
+      }
+      next(error);
     }
   },
 };
