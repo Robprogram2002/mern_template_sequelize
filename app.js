@@ -74,8 +74,8 @@ app.use((error, req, res) => {
 });
 
 const main = async () => {
-  const server = app.listen(process.env.PORT || 3000, async () => {
-    console.log('server running !! : http://localhost:3000');
+  const server = app.listen(process.env.PORT || 5000, async () => {
+    console.log('server running !! : http://localhost:5000');
     await sequelize.authenticate();
     console.log('database connetced succesfully !!');
 

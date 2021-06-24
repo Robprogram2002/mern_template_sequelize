@@ -34,6 +34,6 @@ route.post(
   ],
   signUpHanlder,
 );
-route.get('/signin', signInHandler);
+route.post('/signin', signInHandler);
 
 module.exports = route;

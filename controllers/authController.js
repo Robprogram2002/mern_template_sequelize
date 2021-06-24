@@ -63,7 +63,7 @@ module.exports = {
         process.env.TOKEN_SECRET,
         { expiresIn: process.env.TOKEN_EXPIRATION },
       );
-      res.status(200).json({ token, userId: loadedUser.uuid });
+      res.status(200).json({ token, user: user.toJSON() });
     } catch (error) {
       if (!error.statusCode) {
         error.statusCode = 500;
